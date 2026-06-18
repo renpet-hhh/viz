@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="./main.css">
+  <link rel="stylesheet" type="text/css" href="./inspector.css"> 
+  <title>Projeto Final</title>
+</head>
+<body>
+
+    <div id="controls-for-rank_graph_over_time">
+        <div id="observablehq-viewof-NumberHighlightedCountries"></div>
+        <div id="observablehq-viewof-StackedBarsDataSelection"></div>
+    </div>
+    <div style="width: 100%" id="observablehq-rank_graph_over_time"></div>
+
+    <div style="margin-top: 10rem" id="observablehq-viewof-yearSelection"></div>
+    <div style="display: flex; flex-direction: row">
+        <div id="observablehq-viewof-exportHeatMap"></div>
+        <div id="observablehq-sideBars"></div>
+    </div>
+
+    <div style="margin-top: 10rem" id="observablehq-demandVersusOutput"></div>
+    
+    <div style="margin-top: 10rem" id="observablehq-stockdiffBarChart"></div>
+
+    <script type="module">
+    import define from "./index.js";
+    import {Runtime, Library, Inspector} from "./runtime.js";
+
+    const runtime = new Runtime();
+    
+    new Runtime().module(define, name => {
+        if (name === "viewof NumberHighlightedCountries") return new Inspector(document.querySelector("#observablehq-viewof-NumberHighlightedCountries"));
+        if (name === "viewof StackedBarsDataSelection") return new Inspector(document.querySelector("#observablehq-viewof-StackedBarsDataSelection"));
+        if (name === "rank_graph_over_time") return new Inspector(document.querySelector("#observablehq-rank_graph_over_time"));
+        if (name === "viewof yearSelection") return new Inspector(document.querySelector("#observablehq-viewof-yearSelection"));
+        if (name === "viewof exportHeatMap") return new Inspector(document.querySelector("#observablehq-viewof-exportHeatMap"));
+        if (name === "sideBars") return new Inspector(document.querySelector("#observablehq-sideBars"));
+        if (name === "demandVersusOutput") return new Inspector(document.querySelector("#observablehq-demandVersusOutput"));
+        if (name === "stockdiffBarChart") return new Inspector(document.querySelector("#observablehq-stockdiffBarChart"));
+    });
+    </script>
+
+</body>
+</html>

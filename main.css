@@ -1,0 +1,25 @@
+/* Remove margens e paddings padrão que causam overflow */
+html, body {
+margin: 10px;
+padding: 0;
+width: 100%;
+overflow-x: hidden; /* Evita qualquer rolagem horizontal acidental */
+box-sizing: border-box;
+}
+
+*, *:before, *:after {
+box-sizing: inherit;
+}
+
+/* Garante que o container do gráfico ocupe toda a largura disponível */
+#observablehq-rank_graph_over_time {
+    width: 100%;
+    max-width: 100%;
+    display: block; /* Evita espaçamentos extras de elementos inline */
+}
+
+/* Se os controles estiverem na mesma página, limite-os também */
+#controls-forcontrols-for-rank_graph_over_time {
+    width: 100%;
+    padding: 10px; /* Se quiser um respiro nas laterais dos controles */
+}

@@ -1,0 +1,14 @@
+{
+  "name": "234a5d3ce09cec16",
+  "main": "234a5d3ce09cec16@1794.js",
+  "version": "1794.0.0",
+  "homepage": "https://observablehq.com/d/234a5d3ce09cec16",
+  "author": {
+    "name": "renan",
+    "url": "https://observablehq.com/@renan3"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}

@@ -1,0 +1,65 @@
+reporterCd,reporterLabel,partnerCd,partnerLabel,productCd,productLabel,2002 (USD Thousand),2003 (USD Thousand),2004 (USD Thousand),2005 (USD Thousand),2006 (USD Thousand),2007 (USD Thousand),2008 (USD Thousand),2009 (USD Thousand),2010 (USD Thousand),2011 (USD Thousand),2012 (USD Thousand),2013 (USD Thousand),2014 (USD Thousand),2015 (USD Thousand),2016 (USD Thousand),2017 (USD Thousand),2018 (USD Thousand),2019 (USD Thousand),2020 (USD Thousand),2021 (USD Thousand),2022 (USD Thousand),2023 (USD Thousand),2024 (USD Thousand),2025 (USD Thousand)
+724,Spain,000,World,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",1,0,8,9,15,16,16,53,6,28,67,51,1576364,769681,323474,674153,768241,664463,353055,612343,570696,1493815,1884604,187426
+724,Spain,251,France,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,31,5,744725,533824,163517,291104,311950,259885,147498,248379,415660,1125973,1214432,87701
+724,Spain,381,Italy,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,480453,141390,91292,212889,294387,259466,95672,253901,121745,229246,410369,61518
+724,Spain,705,Slovenia,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,129895,26086,14260,23012,22505,20551,13218,42550,0,25940,75433,0
+724,Spain,620,Portugal,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,9,2,2,5,3,2,7,7,7,86316,41576,52759,124675,104078,48942,25100,58931,8428,27320,60738,17095
+724,Spain,470,Malta,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,18115,0,9227,13712,0,13089,5712,0,0,56416,0
+724,Spain,191,Croatia,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,38753,20969
+724,Spain,372,Ireland,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13168,0,0,0,0,0,29296,28370,0
+724,Spain,634,Qatar,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,28,10,44,29,22
+724,Spain,170,Colombia,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,1,5,29,7,10,11,11,14,12,22,14,21,20,4
+724,Spain,276,Germany,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,1,6,2,11,4
+724,Spain,192,Cuba,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",1,0,0,0,0,0,0,0,0,0,0,0,149,43,0,0,5,54,0,6,8,50,8,0
+724,Spain,218,Ecuador,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,9,0,4,0,0,1,0,7,0,8,6,0,5,5
+724,Spain,484,Mexico,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,49,0,0,0,0,0,0,76,24,46,0,55,2,86,40,4,47
+724,Spain,784,United Arab Emirates,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0
+724,Spain,036,Australia,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,7,0,3,0
+724,Spain,764,Thailand,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,32
+724,Spain,076,Brazil,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,3,0,3,0,0,0,0,1,0,1,0,1,2,2
+724,Spain,188,Costa Rica,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,2,0,0,2,2,0
+724,Spain,462,Maldives,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2
+724,Spain,604,Peru,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,2,4,2,6,5,1,0,0,0,0,0,0,0,1,2
+724,Spain,012,Algeria,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0
+724,Spain,020,Andorra,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,11,0,0,1,4,0,0
+724,Spain,040,Austria,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0
+724,Spain,056,Belgium,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,1,1,1614,1078,1,0,2,5386,0,0,0,0,0
+724,Spain,124,Canada,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+724,Spain,132,Cabo Verde,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+724,Spain,152,Chile,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,10,0,0,0
+724,Spain,156,China,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,139,0,0,1
+724,Spain,208,Denmark,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4091,0,0,0,0,0
+724,Spain,214,Dominican Republic,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,2,7,0,0,1,0,1,0,0,0,0,0,0,0,0,0,6,0,0,0
+724,Spain,226,Equatorial Guinea,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6
+724,Spain,233,Estonia,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,442,0,0,0,0,0,0,0,0,0
+724,Spain,246,Finland,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0
+724,Spain,288,Ghana,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,11,6,3,0,1,0,0,0,0,0,0,0,0
+724,Spain,292,Gibraltar,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,1,0,0,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+724,Spain,300,Greece,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,31008,0,0,0,0,5,0,0,0,0,0,0
+724,Spain,340,Honduras,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,20,3,0,0,0,0,36,0,0
+724,Spain,344,"Hong Kong, China",2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0
+724,Spain,348,Hungary,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0
+724,Spain,364,"Iran, Islamic Republic of",2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,2,6,4,0,0,0,0,0,0,0,0,0
+724,Spain,368,Iraq,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0
+724,Spain,388,Jamaica,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,9,0,0,5,2,5,5,2,2,0,0,0,0,0,4,0,0,0
+724,Spain,478,Mauritania,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,4,0,0,0,0,0
+724,Spain,490,"Taipei, Chinese",2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0
+724,Spain,504,Morocco,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,5,5,1,0,0,0,4,6,11,9,0,2,0,10,42,2,8,14,0,0
+724,Spain,528,Netherlands,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,103743,6959,0,1,21533,2178,7113,2773,0,26003,0,0
+724,Spain,579,Norway,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+724,Spain,591,Panama,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0
+724,Spain,616,Poland,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,0,0,0,2,24543,29817,0,0
+724,Spain,682,Saudi Arabia,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,9,4,0,0,0,0,2,0,0,0,0,0,0
+724,Spain,686,Senegal,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0
+724,Spain,699,India,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,4,0,0,0,0,0,0,0,0
+724,Spain,702,Singapore,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0
+724,Spain,710,South Africa,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,1
+724,Spain,757,Switzerland,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,8,10,0,0,0
+724,Spain,788,Tunisia,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,34,0,0,0,0,0,0,0,0,0,0
+724,Spain,792,Türkiye,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12
+724,Spain,818,Egypt,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+724,Spain,826,United Kingdom,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,73326,41764,1,1,0,0,3
+724,Spain,837,Ship stores and bunkers,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,4,0,5,0,0,0,1,0,0,0,0,0,14,0,0,0,0,0,0,0,0,0
+724,Spain,842,United States of America,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,16,0,4,0,0
+724,Spain,858,Uruguay,2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0
+724,Spain,862,"Venezuela, Bolivarian Republic of",2709,"Petroleum oils and oils obtained from bituminous minerals, crude",0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0
