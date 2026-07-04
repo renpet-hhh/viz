@@ -2,45 +2,218 @@
 <html lang="pt">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="./main.css">
-  <link rel="stylesheet" type="text/css" href="./inspector.css"> 
-  <title>Projeto Final</title>
+  <link rel="stylesheet" type="text/css" href="./inspector.css">
+  <title>A geopolítica do petróleo em dados</title>
 </head>
 <body>
 
-    <div id="controls-for-rank_graph_over_time">
-        <div id="observablehq-viewof-NumberHighlightedCountries"></div>
+  <header class="site-header">
+    <div>
+        <h1 class="site-header__title">A geopolítica do petróleo em dados</h1>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Seções da página">
+      <button class="tabs__btn is-active" role="tab" id="tab-btn-highlights" aria-selected="true" aria-controls="tab-panel-highlights" data-tab="highlights">
+        Destaques
+      </button>
+      <button class="tabs__btn" role="tab" id="tab-btn-explore" aria-selected="false" aria-controls="tab-panel-explore" data-tab="explore" tabindex="-1">
+        Explorar
+      </button>
+    </nav>
+  </header>
+
+  <!-- ABA 1 — DESTAQUES (blog-like, texto + imagens) -->
+  <main id="tab-panel-highlights" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-btn-highlights">
+    <article class="story">
+
+      <section class="story__hero">
+        <h2 class="story__headline">Placeholder - título principal</h2>
+        <p class="story__lede">
+          Placeholder - descrição
+        </p>
+      </section>
+
+      <section class="story__block">
+        <div class="story__text">
+          <h3>Placeholder: título</h3>
+          <p>
+            Placeholder - descrição
+          </p>
+        </div>
+        <figure class="story__figure">
+          <div class="placeholder-image" role="img" aria-label="Espaço reservado para imagem ou captura do gráfico de ranking">
+            <span>Imagem</span>
+          </div>
+          <figcaption>Caption</figcaption>
+        </figure>
+      </section>
+
+      <section class="story__block story__block--reverse">
+        <div class="story__text">
+          <h3>Placeholder: título</h3>
+          <p>
+            Placeholder - descrição
+          </p>
+        </div>
+        <figure class="story__figure">
+          <div class="placeholder-image" role="img">
+            <span>Imagem</span>
+          </div>
+          <figcaption>Caption</figcaption>
+        </figure>
+      </section>
+
+      <blockquote class="story__pullquote">
+        “Placeholder”
+      </blockquote>
+
+      <section class="story__block">
+        <div class="story__text">
+          <h3>Placeholder - título</h3>
+          <p>
+            Placeholder - descrição
+          </p>
+        </div>
+        <figure class="story__figure">
+          <div class="placeholder-image" role="img" aria-label="Espaço reservado para imagem ou captura da série temporal">
+            <span>Imagem</span>
+          </div>
+          <figcaption>Caption</figcaption>
+        </figure>
+      </section>
+
+      <section class="story__cta">
+        <p>Explore os dados você mesmo!</p>
+        <button class="story__cta-btn" id="go-to-explore">Explorar</button>
+      </section>
+
+    </article>
+  </main>
+
+  <!-- ABA 2 — EXPLORAR (visualizações interativas) -->
+  <main id="tab-panel-explore" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-explore" hidden>
+
+    <section class="viz-card">
+      <header class="viz-card__header">
+        <h2 class="viz-card__title">Quais os maiores ___________ de petróleo bruto?</h2>
+        <p class="viz-card__subtitle">
+          Escolha o <mark>critério</mark> (produção/exportação/importação), <mark>intervalo de tempo</mark>
+          (<span class="hl-action">clique, segure e arraste</span>), e <mark>número de países destacados</mark>.
+        </p>
+        <p class="viz-card__subtitle">
+          Selecione à direita um ou múltiplos países (segurando <kbd>SHIFT</kbd>) para filtragem.
+          <span class="hl-action">Clique duplo</span> cancela seleções.
+        </p>
+      </header>
+      <div class="viz-card__controls" id="controls-for-rank_graph_over_time">
+      <div class="control">
         <div id="observablehq-viewof-StackedBarsDataSelection"></div>
-    </div>
-    <div style="width: 100%" id="observablehq-rank_graph_over_time"></div>
+        <div id="observablehq-viewof-NumberHighlightedCountries"></div>
+      </div>
+      </div>
+      <div class="viz-card__body">
+        <div style="width: 100%" id="observablehq-rank_graph_over_time"></div>
+      </div>
+    </section>
 
-    <div style="margin-top: 10rem" id="observablehq-viewof-yearSelection"></div>
-    <div style="display: flex; flex-direction: row">
-        <div id="observablehq-viewof-exportHeatMap"></div>
-        <div id="observablehq-sideBars"></div>
-    </div>
+    <section class="viz-card">
+      <header class="viz-card__header">
+        <h2 class="viz-card__title">Comércio internacional: para onde se exporta petróleo bruto?</h2>
+        <p class="viz-card__subtitle">
+          Escolha a <mark>unidade do fluxo</mark> (dólar, barril de petróleo), <mark>ano</mark>, e <mark>fluxo exportador-importador</mark>
+          (<span class="hl-action">clique</span> em um célula).
+        </p>
+      </header>
 
-    <div style="margin-top: 10rem" id="observablehq-demandVersusOutput"></div>
-    
-    <div style="margin-top: 10rem" id="observablehq-stockdiffBarChart"></div>
+      <div class="viz-card__controls">
+        <div class="control">
+          <div id="observablehq-viewof-yearSelection"></div>
+        </div>
+        <div class="control">
+          <span class="control__label">Unidade do fluxo</span>
+          <div class="segmented" role="radiogroup" aria-label="Escolha a versão do mapa de calor">
+            <button type="button" class="segmented__btn is-active" data-heatmap-version="1" role="radio" aria-checked="true">Dólar</button>
+            <button type="button" class="segmented__btn" data-heatmap-version="2" role="radio" aria-checked="false">Barril de petróleo</button>
+          </div>
+        </div>
+      </div>
 
-    <script type="module">
+      <div class="viz-card__body">
+        <div class="heatmap-row" data-heatmap-panel="1">
+            <div id="observablehq-viewof-exportHeatMap"></div>
+            <div id="observablehq-sideBars"></div>
+        </div>
+        <div class="heatmap-row" data-heatmap-panel="2" hidden>
+            <div id="observablehq-viewof-exportHeatMap2"></div>
+            <div id="observablehq-sideBars2"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="viz-card">
+      <header class="viz-card__header">
+        <h2 class="viz-card__title">Quem mais <span style="color: #D7191C;">demanda</span> e quem mais <span style="color: #2C7BB6">produz</span> produtos secundários?</h2>
+        <p class="viz-card__subtitle">Produtos secundários incluem gases de petróleo liquefeitos, nafta, gasolina motora e de aviação, querosenes, diesel, óleo combustível e outros produtos petrolíferos.</p>
+        <p class="viz-card__subtitle">
+          Países ordenados pela diferença entre demanda e produção a cada <mark>ano</mark>. Países com diferença absoluta inferior a 100Mbbl são omitidos nas barras.
+        </p>
+      </header>
+      <div class="viz-card__body">
+        <div id="observablehq-demandVersusOutput"></div>
+      </div>
+    </section>
+
+    <section class="viz-card">
+      <header class="viz-card__header">
+        <h2 class="viz-card__title">Ao longo do tempo, o quanto cada país estoca petróleo bruto?</h2>
+        <p class="viz-card__subtitle">Escolha o <mark>país</mark>.</p>
+      </header>
+      <div class="viz-card__controls" id="controls-for-stockdiffBarChart">
+        <div class="control">
+          <div id="observablehq-viewof-selectedCountry"></div>
+        </div>
+      </div>
+      <div class="viz-card__body">
+        <div id="observablehq-stockdiffBarChart"></div>
+      </div>
+    </section>
+
+    <section class="viz-card">
+      <header class="viz-card__header">
+        <h2 class="viz-card__title">Qual a relação entre a <span style="color: #000000;">produção mundial</span> e o <span style="color: #0f67a4;">preço</span> do petróleo?</h2>
+      </header>
+      <div class="viz-card__body">
+        <div id="observablehq-lineGraph"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="./ui.js"></script>
+  <script src="./heatmap-sync.js"></script>
+  <script type="module">
     import define from "./index.js";
     import {Runtime, Library, Inspector} from "./runtime.js";
 
-    const runtime = new Runtime();
-    
     new Runtime().module(define, name => {
         if (name === "viewof NumberHighlightedCountries") return new Inspector(document.querySelector("#observablehq-viewof-NumberHighlightedCountries"));
         if (name === "viewof StackedBarsDataSelection") return new Inspector(document.querySelector("#observablehq-viewof-StackedBarsDataSelection"));
         if (name === "rank_graph_over_time") return new Inspector(document.querySelector("#observablehq-rank_graph_over_time"));
         if (name === "viewof yearSelection") return new Inspector(document.querySelector("#observablehq-viewof-yearSelection"));
         if (name === "viewof exportHeatMap") return new Inspector(document.querySelector("#observablehq-viewof-exportHeatMap"));
+        if (name === "viewof exportHeatMap2") return new Inspector(document.querySelector("#observablehq-viewof-exportHeatMap2"));
         if (name === "sideBars") return new Inspector(document.querySelector("#observablehq-sideBars"));
+        if (name === "sideBars2") return new Inspector(document.querySelector("#observablehq-sideBars2"));
         if (name === "demandVersusOutput") return new Inspector(document.querySelector("#observablehq-demandVersusOutput"));
         if (name === "stockdiffBarChart") return new Inspector(document.querySelector("#observablehq-stockdiffBarChart"));
+        if (name === "viewof selectedCountry") return new Inspector(document.querySelector("#observablehq-viewof-selectedCountry"));
+        if (name === "lineGraph") return new Inspector(document.querySelector("#observablehq-lineGraph"));
     });
-    </script>
-
+  </script>
 </body>
 </html>

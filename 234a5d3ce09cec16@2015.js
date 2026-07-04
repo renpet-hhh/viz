@@ -363,7 +363,22 @@ function _rank_over_time(vl,width){return(
     .spacing(gap)
     .bounds("flush")
     .params(timeInterval, countrySelection)
-    .render();
+    .render({ renderer: "svg" });
+}
+)}
+
+function _convertToKbbl(){return(
+(valueStr, unit) => {
+  const value = parseFloat(valueStr);
+  if (isNaN(value)) return null;
+  switch (unit?.trim().toLowerCase()) {
+    case 'tons':
+      return (value * 7.33) / 1000;
+    case 'cubic meters':
+      return (value * 6.2898) / 1000;
+    default:
+      return null; 
+  }
 }
 )}
 
@@ -482,7 +497,7 @@ countryCentroids.map(d => {
 })
 )}
 
-function _28(countryCentroids){return(
+function _29(countryCentroids){return(
 countryCentroids
 )}
 
@@ -561,20 +576,40 @@ function _themeColors(){return(
 }
 )}
 
-async function _exportHeatMap(vl,themeColors,get_threshold_expr_and_domain,shortenedExports,shortenedExporters,d3,width,countryCentroids,shorten,topojson,world,Event)
+function _yearSelection(vl)
 {
-
-  const yearSelection = vl.param('yearSelection')
+  return vl.param('yearSelection')
     .bind({ input: 'range', min: 2002, max: 2025, step: 1, name: 'Ano' })
-    .value(2024)
+    .value(2024);
+}
 
-  const selectCell     = vl.selectPoint('selectCell').fields('exporter', 'importer');
-  const selectExporter = vl.selectPoint('selectExporter').fields('exporter');
-  const selectImporter = vl.selectPoint('selectImporter').fields('importer');
-  
-  const hoverCell      = vl.selectPoint('hoverCell').on('mouseover').clear('mouseout').fields('exporter', 'importer');
-  const hoverExporter  = vl.selectPoint('hoverExporter').on('mouseover').clear('mouseout').fields('exporter');
-  const hoverImporter  = vl.selectPoint('hoverImporter').on('mouseover').clear('mouseout').fields('importer');
+
+function _selectCell(vl)
+{ return vl.selectPoint('selectCell').fields('exporter', 'importer') }
+
+
+function _selectExporter(vl)
+{ return vl.selectPoint('selectExporter').fields('exporter') }
+
+
+function _selectImporter(vl)
+{ return vl.selectPoint('selectImporter').fields('importer') }
+
+
+function _hoverCell(vl)
+{ return vl.selectPoint('hoverCell').on('mouseover').clear('mouseout').fields('exporter', 'importer') }
+
+
+function _hoverExporter(vl)
+{ return vl.selectPoint('hoverExporter').on('mouseover').clear('mouseout').fields('exporter') }
+
+
+function _hoverImporter(vl)
+{ return vl.selectPoint('hoverImporter').on('mouseover').clear('mouseout').fields('importer') }
+
+
+async function _exportHeatMap(selectCell,selectExporter,selectImporter,hoverCell,hoverExporter,hoverImporter,vl,themeColors,get_threshold_expr_and_domain,shortenedExports,shortenedExporters,d3,width,countryCentroids,shorten,topojson,world,yearSelection,Event)
+{
 
   const heatmapParams = [selectCell, selectExporter, selectImporter, hoverCell, hoverExporter, hoverImporter]
   
@@ -988,6 +1023,543 @@ function _sideBars(exportHeatMap,html,shortenedExports,vl,themeColors)
 }
 
 
+function _dinamizeDateFromTrade2(convertToKbbl){return(
+function (data) {
+  const parsedPartners = [];
+
+  // exclude World
+  data.forEach(line => {
+    const {
+      reporterLabel: exporter,
+      partnerLabel: importer,
+    } = line;
+
+    if (importer.toLowerCase() === 'world') {
+      return;
+    }
+
+    // Find 2002, 2003, ...
+    const years = Object.keys(line).filter(key => /^\d{4}$/.test(key));
+
+    years.forEach(yearStr => {
+      const rawValue = line[yearStr];
+      const unit = line[`${yearStr}_unit`];
+      const convertedValue = convertToKbbl(rawValue, unit);
+
+      parsedPartners.push({
+        exporter: exporter,
+        importer: importer,
+        dateStr: yearStr, // will be converted later to actual date object
+        value: convertedValue
+      });
+    });
+  });
+
+  // computo World manualmente, porque a unidade nos dados para World não é nem 'Tons' nem 'Cubic meters', é 'Mixed'... horrível
+  const worldAggregates = {};
+
+  parsedPartners.forEach(item => {
+    const groupKey = `${item.exporter}||${item.dateStr}`;
+
+    if (!worldAggregates[groupKey]) {
+      worldAggregates[groupKey] = {
+        exporter: item.exporter,
+        importer: "World",
+        dateStr: item.dateStr,
+        sum: 0,
+        hasValidData: false
+      };
+    }
+
+    if (item.value !== null) {
+      worldAggregates[groupKey].sum += item.value;
+      worldAggregates[groupKey].hasValidData = true;
+    }
+  });
+
+  const finalPartners = parsedPartners.map(item => ({
+    exporter: item.exporter,
+    importer: item.importer,
+    date: new Date(item.dateStr, 0), // agora sim para data
+    value: item.value
+  }));
+
+  const finalWorld = Object.values(worldAggregates).map(item => ({
+    exporter: item.exporter,
+    importer: item.importer,
+    date: new Date(item.dateStr, 0),
+    value: item.hasValidData ? item.sum : null
+  }));
+
+  return [...finalPartners, ...finalWorld];
+}
+)}
+
+function _exports2(FileAttachment,dinamizeDateFromTrade2){return(
+Promise.all(
+  [
+    FileAttachment("2-saudi-arabias-exports-to-world-by-importer-mirror_2709.csv"),
+    // Russia 2002-2021
+    FileAttachment("2-russian-federations-exports-to-world-by-importer_2709.csv"),
+    // Russia 2022-2025
+    FileAttachment("2-russian-federations-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-canadas-exports-to-world-by-importer_2709.csv"),
+    // Iran 2002-2023
+    FileAttachment("2-iran-islamic-republic-ofs-exports-to-world-by-importer_2709.csv"),
+    // Iran 2024-2025
+    FileAttachment("2-iran-islamic-republic-ofs-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-iraqs-exports-to-world-by-importer-mirror_2709.csv"),
+    // Nigeria 2002-2024
+    FileAttachment("2-nigerias-exports-to-world-by-importer_2709.csv"),
+    // Nigeria 2025
+    FileAttachment("2-nigerias-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-united-states-of-americas-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-chinas-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-japans-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-indias-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-korea-republic-ofs-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-germanys-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-brazils-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-kuwaits-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-norways-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-kazakhstans-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-netherlands-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-spains-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-thailands-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-frances-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-singapores-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-united-kingdoms-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-italys-exports-to-world-by-importer_2709.csv")
+  ]
+  .map(file => file.csv().then(dinamizeDateFromTrade2))
+).then(data => data.flatMap(x => x))
+)}
+
+function _shortenedExports2(exports2,shorten)
+{
+  return exports2.map(row => ({
+    ...row,
+    exporter: shorten(row.exporter),
+    importer: shorten(row.importer)
+  }));
+}
+
+
+async function _exportHeatMap2(selectCell,selectExporter,selectImporter,hoverCell,hoverExporter,hoverImporter,vl,themeColors,get_threshold_expr_and_domain,shortenedExports2,shortenedExporters,d3,width,countryCentroids,shorten,topojson,world,yearSelection,Event)
+{
+
+  const heatmapParams = [selectCell, selectExporter, selectImporter, hoverCell, hoverExporter, hoverImporter]
+  
+  const hasClick    = selectCell.empty(false);
+  const hasClickExp = selectExporter.empty(false);
+  const hasClickImp = selectImporter.empty(false);
+  
+  const hasHover    = hoverCell.empty(false);
+  const hasHoverExp = hoverExporter.empty(false);
+  const hasHoverImp = hoverImporter.empty(false);
+  
+  const activeFlows = vl.or(
+    vl.and(vl.not(hasClick), hasHover),
+    vl.and(hasClick, hasHover, vl.or(hasClickExp, hasClickImp)),
+    vl.and(hasClickExp, vl.not(hasHoverExp)),
+    vl.and(hasClickImp, vl.not(hasHoverImp))
+  );
+  
+  // Range das setas
+  const limits = {
+    maxStrokeWidth: 15,          // Espessura máxima da linha do fluxo de maior valor
+    minArrowSize: 20,            // Área mínima da seta (para fluxos de valor baixo)
+    maxArrowSize: 800            // Área máxima da seta (para não engolir o país de destino)
+  };
+
+  // Obs.: abaixo uso função () porque o objeto vl.color() é mutado internamente... então
+  // temos que pegar um objeto novo em folha sempre que quisermos reusar
+
+  // Regra da cor da setas(usada para linha e triângulo)
+  const getFlowColor = () => vl.color()
+    .if(vl.and(hasClick, hasHover), vl.value(themeColors.primaryRed))
+    .if(hasClick, vl.value(themeColors.primaryRed)) 
+    .if(hasClickExp, vl.value(themeColors.exporterOrange))
+    .if(hasClickImp, vl.value(themeColors.importerBlue))
+    .if(hasHover, vl.value(themeColors.hoverGreen)) 
+    .value(themeColors.inactiveGray);
+
+  // Regra da opacidade da seta (usada para linha e triângulo)
+  const getFlowOpacity = () => vl.opacity()
+    .if(hasHover, vl.value(1)) 
+    .if(hasClick, vl.value(0.8)) 
+    .if(activeFlows, vl.value(0.2))
+    .value(0);
+  
+  
+  const thresholds = [0.01, 0.1, 1, 10, 100, 1000];
+  const { expr: thresholdExpr, domain: thresholdDomain } = get_threshold_expr_and_domain(thresholds, 'value_mi');
+  
+  const heatmap = vl.markRect()
+    .data(shortenedExports2)
+    .params(heatmapParams)
+    .transform(
+      vl.filter('year(datum.date) == yearSelection'),
+      vl.filter(`
+        indexof(${JSON.stringify(shortenedExporters)}, datum.importer) >= 0
+      `),
+      // datum.value está em kbbl: (datum.value / 1e3) está em Mbbl
+      vl.calculate('datum.value / 1e3').as('value_mi'),
+
+      vl.impute('value_mi')
+        .key('importer')
+        .groupby(['exporter'])
+        .value(null),
+        
+      vl.calculate(thresholdExpr).as('value_range'),
+      
+    )
+    .encode(
+      vl.y().fieldN('exporter').scale({ domain: shortenedExporters.slice(0, shortenedExporters.length - 1) }).title('Exportador'), // exceto World
+      vl.x().fieldN('importer').scale({ domain: shortenedExporters }).title('Importador'),
+      vl.color()
+        .fieldO('value_range')
+        .if('datum.exporter == datum.importer', vl.value('#ccc'))
+        .scale({ 
+          domain: thresholdDomain,
+          range: [
+            '#ffffff',
+            ...d3.schemeBlues[thresholds.length]
+          ]
+        })
+        .legend({
+          orient: 'none', // Legenda fica flutuante
+          legendX: -40,
+          legendY: 395,
+          direction: 'vertical',
+          title: 'Mbbl',
+          titleOrient: 'top',
+        }),
+      vl.tooltip([
+        { field: 'exporter', type: 'nominal', title: 'Exportador' },
+        { field: 'importer', type: 'nominal', title: 'Importador' },
+        { field: 'value_mi', type: 'quantitative', format: '.2f', title: 'Mbbl'}
+      ]),
+      vl.stroke()
+        .if(hasClick, vl.value(themeColors.gridStrokeClick))
+        .if(hasHover, vl.value(themeColors.gridStrokeHover))
+        .if(vl.or(hasClickExp, hasClickImp), vl.value(themeColors.gridStrokeInactive))
+        .value(null),
+      vl.strokeWidth()
+        .if(hasClick, vl.value(2))
+        .if(hasHover, vl.value(2))
+        .if(vl.or(hasClickExp, hasClickImp), vl.value(0.5))
+        .value(0),
+      vl.order()
+        .if(hasClick, vl.value(3))
+        .if(hasHover, vl.value(2))
+        .if(vl.or(hasClickExp, hasClickImp), vl.value(1))
+        .value(0)
+    );
+
+  const mapWidth = 0.4 * width;
+  const mapHeight = 320;
+
+  const proj = d3.geoEquirectangular()
+    .scale(90)
+    .translate([mapWidth / 2 - 120, 160]);
+
+  const projectedCentroids = countryCentroids.map(c => {
+    const [x, rawY] = proj([c.longitude, c.latitude]);
+    const y = mapHeight - rawY;
+    return { ...c, x, y, name: shorten(c.name) };
+  });
+  
+  const geojson = topojson.feature(world, world.objects.countries);
+  const flatMapData = [];
+  
+  let polyCounter = 0;
+  
+  geojson.features.forEach(feature => {
+    if (!feature.geometry) return;
+    
+    const polys = feature.geometry.type === 'MultiPolygon' 
+      ? feature.geometry.coordinates 
+      : [feature.geometry.coordinates];
+  
+    polys.forEach((poly) => {
+      if (!poly[0]) return;
+      
+      let previousX = null;
+      let boundaryCrossed = false;
+      const temporaryPoints = [];
+  
+      poly[0].forEach((coord, index) => {
+        const [x, rawY] = proj(coord);
+        const y = mapHeight - rawY;
+        
+        // se o x der um pulo maior que metade do mapa de um ponto pro outro,
+        // batemos na borda do mapa (anti-meridiano 180°), então temos que pular esse pedaço
+        // se não o markLine liga as duas pontas cruzando a tela inteira por cima do mapa...
+        if (previousX !== null && Math.abs(x - previousX) > (mapWidth / 2)) {
+          boundaryCrossed = true;
+        }
+        previousX = x;
+  
+        temporaryPoints.push({
+          polyId: 'poly-' + polyCounter,
+          pointIndex: index,
+          x: x,
+          y: y
+        });
+      });
+
+      if (!boundaryCrossed) {
+        flatMapData.push(...temporaryPoints);
+      }
+ 
+      polyCounter++;
+    });
+  });
+
+  const mouseZoomPan = vl.selectInterval('zoomMap').bind('scales');
+  const value_mi_domain = [0, 100];
+
+  const ocean_bg = vl.markRect({ fill: 'transparent' })
+    .data([{ x: 0, y: 0, x2: mapWidth, y2: mapHeight }])
+    .encode(
+      vl.x().fieldQ('x').scale({ domain: [0, mapWidth] }).axis(null),
+      vl.y().fieldQ('y').scale({ domain: [0, mapHeight] }).axis(null),
+      vl.x2().fieldQ('x2'),
+      vl.y2().fieldQ('y2')
+    );
+
+ const background_world_map = vl.markLine({fill: '#eee', stroke: '#ddd', strokeWidth: 1})
+  .data(flatMapData)
+  .encode(
+    vl.x().fieldQ('x').scale({domain: [0, mapWidth]}).axis(null),
+    vl.y().fieldQ('y').scale({domain: [mapHeight, 0]}).axis(null),
+    vl.detail().fieldN('polyId'),
+    vl.order().fieldQ('pointIndex')
+  ); 
+
+  const flow_lines = vl.markRule()
+    .data(shortenedExports2)
+    .transform(
+      vl.filter('year(datum.date) == yearSelection'),
+      vl.filter(activeFlows),
+      // datum.value está em kbbl: (datum.value / 1e3) está em Mbbl
+      vl.calculate('datum.value / 1e3').as('value_mi'),
+      vl.lookup('exporter').from(
+          vl.data(projectedCentroids)
+            .key('name')
+            .fields(['x', 'y'])
+        ),
+      vl.lookup('importer').from(
+          vl.data(projectedCentroids)
+            .key('name')
+            .fields(['x', 'y'])
+        )
+        .as('x2', 'y2'),
+      // se um dos países não for encontrado na listagem de centroids,
+      // o lookup retorna NaN/Null e a linha vai parar nas coordenadas (0,0) (no meio do oceano)
+      // temos que limpar esses dados inválidos para evitar setas/traços cruzando o nada...
+      vl.filter('isValid(datum.x) && isValid(datum.y) && isValid(datum.x2) && isValid(datum.y2)'),
+    )
+    .encode(
+      vl.x().fieldQ('x'),
+      vl.y().fieldQ('y'),
+      vl.x2().fieldQ('x2'),
+      vl.y2().fieldQ('y2'),
+      vl.strokeWidth().fieldQ('value_mi')
+        .scale({
+          type: 'sqrt',
+          domain: value_mi_domain,
+          range: [0, limits.maxStrokeWidth],
+          clamp: true
+        })
+        .legend(null),
+      vl.color(getFlowColor()),               
+      vl.opacity(getFlowOpacity()),
+      vl.order()
+        .if(vl.and(hasClick, hasHover), vl.value(9))
+        .if(hasClick, vl.value(8)) 
+        .if(vl.and(vl.not(hasClick), hasHover), vl.value(7)) 
+        .if(hasClickExp, vl.value(6))
+        .if(hasClickImp, vl.value(5))
+        .value(1),
+      vl.tooltip([
+        { field: 'exporter', type: 'nominal', title: 'Exportador' },
+        { field: 'importer', type: 'nominal', title: 'Importador' },
+        { field: 'value_mi', type: 'quantitative', format: '.2f', title: 'Mbbl'}
+      ])
+    );
+
+  const flow_arrows = vl.markPoint({
+      shape: 'triangle',
+      filled: true
+    })
+    .data(shortenedExports2)
+    .transform(
+      vl.filter('year(datum.date) == yearSelection'),
+      vl.filter(activeFlows), 
+      vl.filter('datum.value > 0'),
+      // datum.value está em Thousand USD: (datum.value / 1e3) está em USD million
+      vl.calculate('datum.value / 1e3').as('value_mi'),
+      vl.lookup('exporter').from(
+          vl.data(projectedCentroids)
+            .key('name')
+            .fields(['x', 'y'])
+        ),
+      vl.lookup('importer').from(
+          vl.data(projectedCentroids)
+            .key('name')
+            .fields(['x', 'y'])
+        )
+        .as('x2', 'y2'),
+      vl.filter('isValid(datum.x) && isValid(datum.y) && isValid(datum.x2) && isValid(datum.y2)'),
+      // Calcula o ângulo (em graus) de rotação da seta
+      // O cálculo do atan2 aqui precisa de datum.y - datum.y2 na vertical
+      // porque no sistema de coordenadas da tela do Vega-Lite o Y cresce para baixo, mas nos
+      // nossos dados do flatMap o Y cresce para cima! Fazendo assim a seta não aponta invertida
+      vl.calculate('atan2(datum.y - datum.y2, datum.x2 - datum.x) * 180 / PI + 90').as('angle')
+    )
+    .encode(
+      vl.x().fieldQ('x2'), // Triângulo (seta) fica na coordenada do importador!
+      vl.y().fieldQ('y2'), // Triângulo (seta) fica na coordenada do importador!
+      vl.angle().fieldQ('angle').scale({ domain: [0, 360], range: [0, 360] }), // Rotaciona na direção do fluxo
+      // O LADO do triângulo (seta) deve ser proporcional ao STROKEWIDTH do markRule()
+      // Pela escala do STROKEWIDTH, é calculado como sqrt(value_mi).
+      // Pegadinha: o size() do triângulo (markPoint() shape 'triangle') determina a ÁREA do triângulo
+      // A área é proporcional ao quadrado (^2) do LADO do triângulo. Então fazemos a ÁREA (size()) ser
+      // proporcional a value_mi (ou seja, escala linear); isso faz o LADO ser proporcional a sqrt(value_mi),
+      // assim como STROKE_WIDTH!
+      vl.size().fieldQ('value_mi')
+        .scale({
+          type: 'linear',
+          domain: value_mi_domain,
+          range: [limits.minArrowSize, limits.maxArrowSize], // ÁREA do triângulo
+          clamp: true
+        }),
+      // Triângulo (seta) deve ter a mesma cor do markRule()
+      vl.color(getFlowColor()),
+      // Triângulo (seta), deve ter a mesma opacidade do markRule()
+      vl.opacity(getFlowOpacity())
+    );
+  
+  const world_flow_map = vl.layer(ocean_bg.params(mouseZoomPan), background_world_map, flow_arrows, flow_lines);
+  const heatmapSize = 320;
+  
+  const chart = await vl.hconcat([
+    heatmap
+      .width(heatmapSize)
+      .height(heatmapSize),
+    world_flow_map
+      .width(mapWidth)
+      .height(mapHeight)
+  ])
+    .params(yearSelection)
+    .resolve({ scale: { color: 'independent' }})
+    .config({ view: { stroke: null } }) 
+    .render({ renderer: 'canvas' });
+
+  const view = chart.value;
+
+  chart.value = view;
+
+  view.addSignalListener("selectCell", () => {
+    chart.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  
+  return chart;
+}
+
+
+function _sideBars2(exportHeatMap2,html,shortenedExports2,vl,themeColors)
+{
+  const cellSignal = exportHeatMap2.signal("selectCell");
+  const yearSignal = exportHeatMap2.signal("yearSelection"); // é um int
+
+  const emptyViz = html`<div style="width: 220px; height: 380px; box-sizing: border-box;"></div>`;
+
+  // Se não houver seleção ativa, retorna vazio
+  if (!(cellSignal && cellSignal.exporter && cellSignal.exporter.length > 0)) return emptyViz;
+
+  const selExp = exportHeatMap2.signal("selectExporter").exporter[0];
+  const selImp = exportHeatMap2.signal("selectImporter").importer[0];
+
+  if (selImp == 'World') return emptyViz;
+
+  const dataExporter = shortenedExports2.filter(d => d.exporter === selExp);
+  const dataImporter = shortenedExports2.filter(d => d.importer === selImp);
+
+  const exporterBar = vl.markBar()
+    .data(dataExporter)
+    .transform(
+      vl.filter(`year(datum.date) == ${yearSignal}`),
+      vl.calculate('datum.value / 1e3').as('value_mi'),
+      vl.joinaggregate({ op: 'sum', field: 'value_mi', as: 'total_exports' }).groupby(['exporter']),
+      vl.calculate('(datum.value_mi / datum.total_exports) * 100').as('pct'),
+      
+      vl.calculate(`datum.exporter == '${selExp}' && datum.importer == '${selImp}' ? 'Fluxo selecionado' : 'Outras exportações'`).as('flow_category'),
+    )
+    .encode(
+      vl.x().fieldN('exporter').title(null).axis(null),
+      vl.y().sum('pct').title('(%)').scale({ domain: [0, 100] }).axis({
+        titleAngle: 0,
+        titleAlign: 'left',
+        titleAnchor: 'end',
+        titleY: -15,
+        titleX: -23
+      }),
+      vl.color()
+        .fieldN('flow_category')
+        .scale({
+          domain: ['Fluxo selecionado', 'Outras exportações'],
+          range: [themeColors.primaryRed, themeColors.exporterOrange]
+        })
+        .legend({ title: null }),
+      vl.tooltip([
+        { field: 'flow_category', type: 'nominal', title: 'Category' },
+        { field: 'value_mi', type: 'quantitative', aggregate: 'sum', format: '.2f', title: 'Mbbl' },
+        { field: 'pct', type: 'quantitative', aggregate: 'sum', format: '.1f', title: '(%)' }
+      ])
+    )
+    .width(45)
+    .height(180);
+
+  const importerBar = vl.markBar()
+    .data(dataImporter)
+    .transform(
+      vl.filter(`year(datum.date) == ${yearSignal}`),
+      vl.calculate('datum.value / 1e3').as('value_mi'),
+      vl.joinaggregate({ op: 'sum', field: 'value_mi', as: 'total_imports' }).groupby(['importer']),
+      vl.calculate('(datum.value_mi / datum.total_imports) * 100').as('pct'),
+      
+      vl.calculate(`datum.exporter == '${selExp}' && datum.importer == '${selImp}' ? 'Fluxo selecionado' : 'Outras importações'`).as('flow_category')
+    )
+    .encode(
+      vl.x().fieldN('importer').title(null).axis(null),
+      vl.y().sum('pct').title(null).scale({ domain: [0, 100] }), 
+      vl.color()
+        .fieldN('flow_category')
+        .scale({
+          domain: ['Fluxo selecionado', 'Outras importações'],
+          range: [themeColors.primaryRed, themeColors.importerBlue]
+        })
+        .legend({ title: null }),
+      vl.tooltip([
+        { field: 'flow_category', type: 'nominal', title: 'Category' },
+        { field: 'value_mi', type: 'quantitative', aggregate: 'sum', format: '.2f', title: 'Mbbl' },
+        { field: 'pct', type: 'quantitative', aggregate: 'sum', format: '.1f', title: '(%)' }
+      ])
+    )
+    .width(45)
+    .height(180);
+  
+  const bars = vl.vconcat([exporterBar, importerBar])
+    .spacing(20)
+    .resolve({ scale: { color: 'independent' } });
+
+  return bars.render();
+}
+
+
 function _kbblTotalDemandOutput(FileAttachment,dinamizeDate){return(
 Promise.all([
     FileAttachment("kbbl-total-demand.csv"),
@@ -1001,11 +1573,16 @@ Promise.all([
     }
     return demand.map(d => {
       const key = `${d.country}_${d.date}`;
+      const rawOutput = outputMap.get(key);
+      
+      const parsedDemand = Number(d.value);
+      const parsedOutput = Number(rawOutput);
+
       return {
         country: d.country,
         date: d.date,
-        demand: d.value,
-        output: outputMap.get(key) ?? null // não deve ocorrer null... só se por algum motivo não coincidir todos os países/datas
+        demand: isNaN(parsedDemand) ? 0 : parsedDemand,
+        output: isNaN(parsedOutput) ? 0 : parsedOutput
       };
     });
 })
@@ -1013,7 +1590,7 @@ Promise.all([
 
 function _demandVersusOutput(vl,kbblTotalDemandOutput)
 {
-  const min_abs_balance_threshold = 100000; // países com balança comercial menor em módulo serão escondidos
+  const min_abs_balance_threshold = 100; // países com balança comercial menor em módulo serão escondidos
 
   const yearSelection = vl.param('yearSelection')
     .bind({ input: 'range', min: 2002, max: 2025, step: 1, name: 'Ano' })
@@ -1029,32 +1606,45 @@ function _demandVersusOutput(vl,kbblTotalDemandOutput)
       vl.filter('year(datum.date) == yearSelection'),
       vl.calculate('datum.output - datum.demand').as('balance'),
       vl.groupby('country').aggregate(
-        vl.sum('balance').as('tot_balance')
+        vl.sum('balance').as('tot_balance'),
+        vl.sum('output').as('tot_output'),
+        vl.sum('demand').as('tot_demand')
       ),
-      vl.filter(`datum.tot_balance > ${min_abs_balance_threshold} || datum.tot_balance < -${min_abs_balance_threshold}`)
+      vl.calculate('datum.tot_balance / 1000').as('mi_balance'),
+      vl.calculate('datum.tot_output / 1000').as('mi_output'),
+      vl.calculate('datum.tot_demand / 1000').as('mi_demand'),
+      vl.filter(`datum.mi_balance > ${min_abs_balance_threshold} || datum.mi_balance < -${min_abs_balance_threshold}`)
     )
     .encode(
-      vl.y().fieldN('country').sort({ field: 'tot_balance', op: 'sum', order: 'ascending' }).title(null),
-      vl.x().fieldQ('tot_balance').title('Produção - Demanda (kbbl)'),
+      vl.y().fieldN('country').sort({ field: 'mi_balance', op: 'sum', order: 'ascending' }).title(null),
+      vl.x().fieldQ('mi_balance')
+        .scale({ domain: [-2500, 2500] })
+        .title('Produção - Demanda (Mbbl)'),
       vl.color()
-        .if('datum.tot_balance < 0', vl.value('#d7191c'))
+        .if('datum.mi_balance < 0', vl.value('#d7191c'))
         .value('#2c7bb6'),
       vl.opacity()
         .if(clickSelection.empty(true), vl.value(1))
-        .value(0.1)
+        .value(0.1),
+      vl.tooltip([
+        { field: 'country', type: 'nominal', title: 'País' },
+        { field: 'mi_output', type: 'quantitative', format: '', title: 'Produção (Mbbl)' },
+        { field: 'mi_demand', type: 'quantitative', title: 'Demanda (Mbbl)' },
+        { field: 'mi_balance', type: 'quantitative', title: 'Diferença (Mbbl)' },
+      ])
     )
 
-    const xyDomain = [0, 9000000];
+    const xyDomain = [0, 9000];
 
-    const points = vl.markPoint()
+    const points = vl.markPoint({ size: 100 })
     .transform(
-      vl.calculate('datum.tot_output - datum.tot_demand').as('balance')
+      vl.calculate('(datum.tot_output - datum.tot_demand) / 1000').as('mi_balance')
     )
     .encode(
-      vl.y().fieldQ('tot_output').scale({ domain: xyDomain, type: 'sqrt' }).title('Produção (kbbl)'),
-      vl.x().fieldQ('tot_demand').scale({ domain: xyDomain, type: 'sqrt' }).title('Demanda (kbbl)'),
+      vl.y().fieldQ('mi_output').scale({ domain: xyDomain, type: 'sqrt' }).title('Produção (Mbbl)'),
+      vl.x().fieldQ('mi_demand').scale({ domain: xyDomain, type: 'sqrt' }).title('Demanda (Mbbl)'),
       vl.color()
-        .if('datum.tot_output < datum.tot_demand', vl.value('#d7191c'))
+        .if('datum.mi_output < datum.mi_demand', vl.value('#d7191c'))
         .value('#2c7bb6'),
       vl.opacity()
         .if(vl.and(hoverSelection.empty(true), clickSelection.empty(true)), vl.value(1))
@@ -1062,9 +1652,9 @@ function _demandVersusOutput(vl,kbblTotalDemandOutput)
         .value(0.05),
       vl.tooltip([
         { field: 'country', type: 'nominal', title: 'País' },
-        { field: 'tot_output', type: 'quantitative', format: '', title: 'Produção (kbbl)' },
-        { field: 'tot_demand', type: 'quantitative', title: 'Demanda (kbbl)' },
-        { field: 'balance', type: 'quantitative', title: 'Diferença (kbbl)' },
+        { field: 'mi_output', type: 'quantitative', format: '', title: 'Produção (Mbbl)' },
+        { field: 'mi_demand', type: 'quantitative', title: 'Demanda (Mbbl)' },
+        { field: 'mi_balance', type: 'quantitative', title: 'Diferença (Mbbl)' },
       ])
     )
 
@@ -1089,7 +1679,9 @@ function _demandVersusOutput(vl,kbblTotalDemandOutput)
       vl.groupby('country').aggregate(
         vl.sum('output').as('tot_output'),
         vl.sum('demand').as('tot_demand')
-      )
+      ),
+      vl.calculate('datum.tot_output / 1000').as('mi_output'),
+      vl.calculate('datum.tot_demand / 1000').as('mi_demand')
     )
     .width(500)
     .height(500);
@@ -1097,7 +1689,7 @@ function _demandVersusOutput(vl,kbblTotalDemandOutput)
   const chart = vl.hconcat(bars, scatterplot)
       .params(yearSelection);
 
-  return chart.render()
+  return chart.render({ renderer: "svg" })
 }
 
 
@@ -1113,51 +1705,249 @@ FileAttachment("kbbl-crudeoil-closingstocks.csv")
   .then(dinamizeDate)
 )}
 
-function _stockdiffBarChart(vl,kbblCrudeoilStockchangeData,width,kbblCrudeoilClosingStocks)
+function _selectedCountry(Inputs,kbblCrudeoilStockchangeData){return(
+Inputs.select(
+  Array.from(new Set(kbblCrudeoilStockchangeData.map(d => d.country))).sort(),
+  { label: "País", value: "Brazil" }
+)
+)}
+
+function _stockdiffBarChart(kbblCrudeoilStockchangeData,selectedCountry,kbblCrudeoilClosingStocks,vl,width)
 {
+  const filteredStockchange = kbblCrudeoilStockchangeData.filter(d => d.country === selectedCountry);
+  const filteredClosing = kbblCrudeoilClosingStocks.filter(d => d.country === selectedCountry);
+
+  const mergedData = filteredStockchange.map(change => {
+    const changeTime = change.date.getTime();
+    const closingRecord = filteredClosing.find(c => c.date.getTime() === changeTime);
+    return {
+      country: change.country,
+      date: change.date,
+      stock_change: change.value,
+      closing_stock: closingRecord ? closingRecord.value : null
+    };
+  });
 
   const colorScale = {
     domain: ['Aumento (Barras)', 'Redução (Barras)', 'Estoque Total (Linha)'],
-    range: ['#26A69A', '#EF5350', '#222'] // Verde, Vermelho e Preto
+    range: ['#26A69A', '#EF5350', '#222']
   };
   
   const bars = vl.markBar()
-    .data(kbblCrudeoilStockchangeData)
+    .data(mergedData)
     .transform(
-      vl.filter('datum.country == "Brazil"'),
-      vl.calculate('datum.value < 0 ? "Redução (Barras)" : "Aumento (Barras)"').as('legenda')
+      vl.calculate('datum.stock_change < 0 ? "Redução (Barras)" : "Aumento (Barras)"').as('legenda')
     )
     .encode(
       vl.x().fieldT('date').timeUnit('yearmonth').axis({ format: '%Y', tickCount: 10 }).title(''),
-      vl.y().fieldQ('value').title(''),
+      vl.y().fieldQ('stock_change').title(''),
       vl.color()
         .fieldN('legenda')
         .scale(colorScale)
         .title('Legenda')
-    )
-    .width(width * 0.8);
+    );
 
   const line = vl.markLine()
-    .data(kbblCrudeoilClosingStocks)
+    .data(mergedData)
     .transform(
-      vl.filter('datum.country == "Brazil"'),
       vl.calculate('"Estoque Total (Linha)"').as('legenda')
     ) 
     .encode(
       vl.x().fieldT('date').timeUnit('yearmonth').axis({ format: '%Y', tickCount: 10 }).title(''),
-      vl.y().fieldQ('value').title('Petróleo bruto (kbbl)'),
+      vl.y().fieldQ('closing_stock').title('Petróleo bruto (kbbl)'),
       vl.color()
         .fieldN('legenda')
         .scale(colorScale)
-    )
-    .width(width * 0.8);
-    
-  const chart = vl.layer(bars, line)
-    .title('Evolução do estoque de petróleo bruto no Brasil');
+    );
 
-  return chart.render()
+  // não uso nearest (nativo do vegalite), pq ele segue a marca mais próxima, em vez da data mais próxima...
+  const hoverSelection = vl.selectPoint('hoverSelection')
+    .on('mousemove')
+    .fields('date')
+    .clear('mouseout');
+
+  // Camada de faixas verticais invisíveis que cobrem 100% da altura do gráfico
+  const interactiveRects = vl.markRect({
+      opacity: 0.001 // 'invisível', mas captura o mouse
+    })
+    .data(mergedData)
+    .params(hoverSelection) // captura o mouse
+    .encode(
+      vl.x().fieldT('date').timeUnit('yearmonth'),
+      vl.tooltip([
+        { field: 'date', type: 'temporal', timeUnit: 'yearmonth', title: 'Data' },
+        { field: 'stock_change', type: 'quantitative', format: ',.0f', title: 'Variação (kbbl)' },
+        { field: 'closing_stock', type: 'quantitative', format: ',.0f', title: 'Estoque Total (kbbl)' }
+      ])
+    );
+
+  // Linha guia vertical discreta que acompanha a seleção ativa
+  const interactiveRule = vl.markRule({
+      color: '#bbb',
+      strokeWidth: 1.5,
+      strokeDash: [3, 3]
+    })
+    .data(mergedData)
+    .transform(
+      vl.filter(vl.and(hoverSelection, hoverSelection.empty(false))) 
+    )
+    .encode(
+      vl.x().fieldT('date').timeUnit('yearmonth'),
+      vl.opacity().value(0.8)
+    );
+    
+  // Monta o gráfico com as faixas retangulares por cima para capturar todo o movimento
+  const chart = vl.layer(bars, line, interactiveRule, interactiveRects)
+    .width(0.6 * width)
+    .title(`Evolução do estoque de petróleo bruto — ${selectedCountry}`);
+
+  return chart.render();
 }
 
+
+function _copyrightNotice(){return(
+['Fonte dos preços: International Monetary Fund, Global price of Brent Crude [POILBREUSDM], retrieved', 'from FRED, Federal Reserve Bank of St. Louis; https://fred.stlouisfed.org/series/POILBREUSDM, July 2, 2026.']
+)}
+
+function _poilbreusdm(__query,FileAttachment,invalidation){return(
+__query(FileAttachment("POILBREUSDM.csv"),{from:{table:"POILBREUSDM"},sort:[],slice:{to:null,from:null},filter:[],select:{columns:null}},invalidation)
+)}
+
+function _lineGraph(poilbreusdm,kbblCrudeoilProduction,vl,copyrightNotice)
+{
+  const colorProduction = '#000'; // preto
+  const colorPrice = '#0f67a4'; // azul
+
+  // Preços (2002-2023)
+  const priceMap = {};
+  poilbreusdm.forEach(d => {
+    const year = d.observation_date.getFullYear();
+    if (year >= 2002 && year <= 2023) {
+      if (!priceMap[year]) priceMap[year] = [];
+      priceMap[year].push(d.POILBREUSDM);
+    }
+  });
+  const avgPriceByYear = Object.entries(priceMap).map(([year, values]) => ({
+    year: Number(year),
+    avg_price: values.reduce((sum, val) => sum + val, 0) / values.length
+  }));
+
+  // Produção (2002-2023)
+  const prodMap = {};
+  kbblCrudeoilProduction.forEach(d => {
+    const year = d.date.getFullYear();
+    if (year >= 2002 && year <= 2023) {
+      if (!prodMap[year]) prodMap[year] = 0;
+      prodMap[year] += d.value / 1e6; // kbbl --> Gbbl
+    }
+  });
+  const sumProdByYear = Object.entries(prodMap).map(([year, value]) => ({
+    year: Number(year),
+    total_prod: value
+  }));
+
+  // { date, avg_price, total_prod }
+  const mergedLineData = avgPriceByYear.map(p => {
+    const prodRecord = sumProdByYear.find(pr => pr.year === p.year);
+    return {
+      date: new Date(p.year, 0, 1), // 1º de janeiro
+      avg_price: p.avg_price,
+      total_prod: prodRecord ? prodRecord.total_prod : 0
+    };
+  }).sort((a, b) => a.date - b.date);
+
+  // Preços (linha)
+  const priceLine = vl.markLine({ color: colorPrice })
+    .data(mergedLineData)
+    .encode(
+      vl.x().fieldT('date').timeUnit('year').title('Ano'),
+      vl.y().fieldQ('avg_price')
+        .title('Preço médio (dólar)')
+        .axis({
+          orient: 'left',         
+          titleColor: colorPrice, 
+          labelColor: colorPrice, 
+          tickColor: colorPrice, 
+          grid: false 
+        })
+    );
+  
+  // Preços (pontos)
+  const points = vl.markPoint({ size: 60, filled: true, color: colorPrice })
+    .data(mergedLineData)
+    .encode(
+      vl.x().fieldT('date').timeUnit('year').title('Ano'),
+      vl.y().fieldQ('avg_price').axis(null)
+    );
+
+  // Produção (Linha)
+  const productionLine = vl.markLine({ size: 3, color: colorProduction })
+    .data(mergedLineData)
+    .encode(
+      vl.x().fieldT('date').timeUnit('year').title(null),
+      vl.y().fieldQ('total_prod')
+        .title('Produção Mundial (Gbbl)')
+        .axis({
+          orient: 'right', 
+          titleColor: colorProduction,
+          labelColor: colorProduction,
+          tickColor: colorProduction 
+        })
+    );
+  const hoverSelection = vl.selectPoint('hoverSelection')
+    .on('mousemove')
+    .nearest(true)
+    .encodings('x')
+    .clear('mouseout');
+
+  // Faixas verticais (inativas)
+  const interactivePoints = vl.markPoint({ opacity: 0, size: 100 })
+    .data(mergedLineData)
+    .params(hoverSelection)
+    .encode(
+      vl.x().fieldT('date').timeUnit('year'),
+      vl.y().fieldQ('avg_price').axis(null), // Alinha verticalmente com a linha de preços
+      vl.tooltip([
+        { field: 'date', type: 'temporal', timeUnit: 'year', title: 'Ano' },
+        { field: 'avg_price', type: 'quantitative', format: '$.2f', title: 'Preço médio (USD)' },
+        { field: 'total_prod', type: 'quantitative', format: ',.2f', title: 'Produção mundial (Gbbl)' }
+      ])
+    );
+
+  // Faixa vertical ativa (hoverizada)
+  const interactiveRule = vl.markRule({
+      color: '#bbb',
+      strokeWidth: 1.5,
+      strokeDash: [3, 3]
+    })
+    .data(mergedLineData)
+    .transform(
+      vl.filter(vl.and(hoverSelection, hoverSelection.empty(false)))
+    )
+    .encode(
+      vl.x().fieldT('date').timeUnit('year'),
+      vl.opacity().value(0.8)
+    );
+
+  return vl.layer(productionLine, priceLine, points, interactiveRule, interactivePoints)
+    .resolve({ 
+      y: 'independent',
+      x: 'shared'
+    })
+    .title({
+      text: "Produção mundial e preço do barril de petróleo bruto em 2002-2023",
+      subtitle: copyrightNotice,
+      subtitleColor: "#666666",
+      subtitleFontSize: 10,
+      orient: "bottom", 
+    })
+    .render();
+}
+
+
+function _58(kbblCrudeoilProduction){return(
+kbblCrudeoilProduction
+)}
 
 export default function define(runtime, observer) {
   const main = runtime.module();
@@ -1197,7 +1987,34 @@ export default function define(runtime, observer) {
     ["kbbl-total-output.csv", {url: new URL("./files/cba6302209c96c84a26aa388b7d1e352f03829e6462e3e16b9525cbfbd225ecc4e89f1304b3d7e9bd80e404ac0af9808da4d4cb5f1e9b270e70de85f76db6f4f.csv", import.meta.url), mimeType: "text/csv", toString}],
     ["kbbl-total-demand.csv", {url: new URL("./files/99a93fd6ce88e6c78a9ca02c1e9049a864edbf367cc4f79dc4fd7d62bfc4af91e4a84b9f83d2df32a134cc2a6ed73b7b74e2504c2c37f0edcdb81375b0d69873.csv", import.meta.url), mimeType: "text/csv", toString}],
     ["kbbl-crudeoil-stockchange.csv", {url: new URL("./files/babf00ad12bc79038080e74294e4c198679c5f9a13b0624618e7c63f96662afaed9a68fd998f3c4b109b819b89d34e199ff6158ca586f9c138528bb4ecb96ab4.csv", import.meta.url), mimeType: "text/csv", toString}],
-    ["kbbl-crudeoil-closingstocks.csv", {url: new URL("./files/b337cbcf0f6875643bb3fb113ee5aa84214ac25a53edfefa23243fd43a591089ce3c38b73a0b910b0cee7cb819a1da3eb07db23a977dcabe67081333a1cebcc2.csv", import.meta.url), mimeType: "text/csv", toString}]
+    ["kbbl-crudeoil-closingstocks.csv", {url: new URL("./files/b337cbcf0f6875643bb3fb113ee5aa84214ac25a53edfefa23243fd43a591089ce3c38b73a0b910b0cee7cb819a1da3eb07db23a977dcabe67081333a1cebcc2.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-saudi-arabias-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/a496ba25ad7592781e33e079b88bbb6738e6e0564843389fa8b0cbe52236e67033690a5f33446159c063ff45e660c3e5afbf6cbe0463b6dd141d59407a4f2826.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-russian-federations-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/fc8261428ac607a8139cbea695476e5f2e2b19aa2de229456841cda4d3cb9dd08d68d40d494fef20d983cc835276f0f28380e7cdad6d92176e8dcf41bb53b2ca.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-russian-federations-exports-to-world-by-importer_2709.csv", {url: new URL("./files/7583289ef17be5f996e5c58afc4da64d89104a9b4577cc6025401dd35bc730eba45cda7295364e5f540e434209904a37c5e154fc19b87f32368b006104f088f3.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-nigerias-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/cba05f3c7b40971d60207374b414f543bb23236098e2c31df3886886ff0d5a81e5e79477b09303d94e9f6f18943efeebef567b04589a86d092ee70443254499e.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-iraqs-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/08f029ad8766dd4e277603a988d6417828b3a05334d1ad892df9a562f502e6551b3d81cc7c148f0455c7cf11260b75320c3e83aae3cb016811f7021868fe2c86.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-iran-islamic-republic-ofs-exports-to-world-by-importer_2709.csv", {url: new URL("./files/2fd1243580bd44ba5eded1dce64b361b491b7ad7a3472d15b77432c81bc5e79ec9a6c43735c604a0b36527369b5ab713ef90e8966f21325316f223f9719089f2.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-nigerias-exports-to-world-by-importer_2709.csv", {url: new URL("./files/c8de81b8b45fc4f6b30eb1106b810c94f4a6a38278750f6ea2ade96ceafb609dcaf1fcb287e465b1ff5fccbdda9a3b800721feb710df80536b24db35b88d1e12.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-iran-islamic-republic-ofs-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/dfe2946b3da59e1527deedb4da1d78b5a3c9d7800b4588a1417652fb5f777fa4fdab9fe003a32d7f46cc6f4f49ec705f79d3bbe06b5ef7d731498524cec3aafd.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-canadas-exports-to-world-by-importer_2709.csv", {url: new URL("./files/eb9999ce21f172c4269621029e94ee921b39d5569c48947f84ae7492aa535cefc7ac8c9e8f0e947a2691dbc2d785e75d81a8f0cdeffda2e380977ccbedc5514c.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-norways-exports-to-world-by-importer_2709.csv", {url: new URL("./files/8104204ee6af30fa7aa3ba4169f41348ed83208919092604b1705198ee61c0d7fa055948277c18cfed3425ceb43af0490af882f24b0ef166fdeb5037341e6df4.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-netherlands-exports-to-world-by-importer_2709.csv", {url: new URL("./files/28ce162626380884924b2415939a492caa6adef44a37dddf81b56f5c065fcb5e54e539a797c2aeaff03ab784c34914e2ec9b5d0dd3a684ccd04fb9121a95838d.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-germanys-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/c259319b4a95008029cc19b399f0d0b0254fce8be8a641017d82e113e1fbd53ed5295ac5ecdd4c735575865a9951d42c2ac963dfa8ad6ff898370c82a0a43a97.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-indias-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/0dfd68310b9b75e3545736fa2dd44c501b5be24a24ca51561e18f8fd6426f27b9707e54d78a575df3543a898b32e680b3f0540d6dc298cc01af4074267b58e53.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-thailands-exports-to-world-by-importer_2709.csv", {url: new URL("./files/61ace2e8022a60f99fd45541ffe4c99df6c2f6efe8d4834377fa7d0fb4afac912c6fea6106e02f5b7483642e67f7628905f96fddc9031698b3ed90b45ae90c81.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-united-kingdoms-exports-to-world-by-importer_2709.csv", {url: new URL("./files/9c2f16ffa2579eb5c2fba32bb184e62cc6e07e736b3e72d497bbf0818f20b2d011f7fe5171cbe250947726f143bafa3b15655b306e36153e2d9ff49549571f99.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-frances-exports-to-world-by-importer_2709.csv", {url: new URL("./files/f21919ff4068c2adc96599dfa5ebe33eb256cbd03123f751e29b11c3fb647805e30819c3a299ee4401342254a24d57e2dcb80687f57e18305e4e9216577eee0a.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-korea-republic-ofs-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/57a3e4798c2aaa2a4828cdde49dc9c24ab8bb64f8164809e13c237e143088ff4c832b13126ee9d9c2ab08cc82c1fb069c571ac3d001a40be8c059b2ca6fc0b60.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-united-states-of-americas-exports-to-world-by-importer_2709.csv", {url: new URL("./files/445112394307afcab489897921914337572e13bdac500c6d08f06ef4aafc99b91a0963dfd9d03c4b01e7caea225817a62f93ea86c810768030eda9a0b07c0e69.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-kuwaits-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/282144f246e7bebf1157098e36130f490f224197c9dc9b4a033b388a9d67fb902247fa1c514cea94fce092405501f0aba28e440edc82be44ed116369657fc41d.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-brazils-exports-to-world-by-importer_2709.csv", {url: new URL("./files/565869aa49c6d74064de4ca1891ebdcf68ed55ddf4b189ea6ee7178e3cb285ca34cc6ae5dbb307a5966fefd2c21ff14f5c4e07eff655e888df94d64387a88e3b.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-italys-exports-to-world-by-importer_2709.csv", {url: new URL("./files/84986ee3bf3f96ffc43a39a5518f92f14a915b79a87fb950a4f17c889d9a036a826c7bf02be20141dc052b825f7f67026ea184cfd7d17e6fe6b99cf6caa92842.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-chinas-exports-to-world-by-importer_2709.csv", {url: new URL("./files/6e071d4ddf1de667fccd255473036bdbbad3f1f393896ada6688c0d0be180aefc6ae1e3802f37fae555abe89bb9771b9b571cfb896e87fca40cce4d49b380fc0.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-spains-exports-to-world-by-importer_2709.csv", {url: new URL("./files/3aee28094f7c8fc2a90f72425edf9d3c261c4b3f00817d84ff167973c49e17e05a3b5f5080c01eceb0845a3e9f0f365bcea0b7041c6833a84530f186fc158df4.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-japans-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/48f2edfa107cc114d4b9f67ad1f643bd6dadede4564d630382429fb6fdf45d3444da04e0078509416f1b5f8d2d2ee3dfb22fce3f01d32b3b064f6f8e7cfaaeb5.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-singapores-exports-to-world-by-importer_2709.csv", {url: new URL("./files/1e4003acb79470d9a900375da55d6cf6e34add88b1c4cbedc7c1c33ac7b548fdf50933f4f68524f3fdd716d59d2bdaf047b0eea6d7bd7df49e16dfa144f7ffd1.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-kazakhstans-exports-to-world-by-importer_2709.csv", {url: new URL("./files/dc0e4db66a6ecf981d90d189872877ea4f31d4b4d735f2e804eb616dcfef285370adf44b3b3ff8752a06f2c18e4caa8a1ef36555a3cad73f22e09d923465cda0.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["POILBREUSDM.csv", {url: new URL("./files/4daf1f02b51a339a9b6c2a8f707a570d9ae86c669e01a8b8e03005243ca87f0b0782cadd518348ca092d008d6d19b5e5f625902005a790309f5db6cf777dec1a.csv", import.meta.url), mimeType: "text/csv", toString}]
   ]);
   main.builtin("FileAttachment", runtime.fileAttachments(name => fileAttachments.get(name)));
   main.variable(observer()).define(["md"], _1);
@@ -1225,24 +2042,44 @@ export default function define(runtime, observer) {
   main.variable(observer("StackedBarsDataSelection")).define("StackedBarsDataSelection", ["Generators", "viewof StackedBarsDataSelection"], (G, _) => G.input(_));
   main.variable(observer("rank_graph_over_time")).define("rank_graph_over_time", ["rank_over_time","StackedBarsDataSelection","NumberHighlightedCountries"], _rank_graph_over_time);
   main.variable(observer("rank_over_time")).define("rank_over_time", ["vl","width"], _rank_over_time);
+  main.variable(observer("convertToKbbl")).define("convertToKbbl", _convertToKbbl);
   main.variable(observer("dinamizeDateFromTrade")).define("dinamizeDateFromTrade", ["parseNumber"], _dinamizeDateFromTrade);
   main.variable(observer("exports")).define("exports", ["FileAttachment","dinamizeDateFromTrade"], _exports);
   main.variable(observer("exporters")).define("exporters", _exporters);
   main.variable(observer("projection")).define("projection", ["d3","width"], _projection);
   main.variable(observer("preProjectedCentroids")).define("preProjectedCentroids", ["countryCentroids","projection"], _preProjectedCentroids);
-  main.variable(observer()).define(["countryCentroids"], _28);
+  main.variable(observer()).define(["countryCentroids"], _29);
   main.variable(observer("get_threshold_expr_and_domain")).define("get_threshold_expr_and_domain", _get_threshold_expr_and_domain);
   main.variable(observer("shorten")).define("shorten", _shorten);
   main.variable(observer("shortenedExporters")).define("shortenedExporters", ["exporters","shorten"], _shortenedExporters);
   main.variable(observer("shortenedExports")).define("shortenedExports", ["exports","shorten"], _shortenedExports);
   main.variable(observer("themeColors")).define("themeColors", _themeColors);
-  main.variable(observer("viewof exportHeatMap")).define("viewof exportHeatMap", ["vl","themeColors","get_threshold_expr_and_domain","shortenedExports","shortenedExporters","d3","width","countryCentroids","shorten","topojson","world","Event"], _exportHeatMap);
+  main.variable(observer("yearSelection")).define("yearSelection", ["vl"], _yearSelection);
+  main.variable(observer("selectCell")).define("selectCell", ["vl"], _selectCell);
+  main.variable(observer("selectExporter")).define("selectExporter", ["vl"], _selectExporter);
+  main.variable(observer("selectImporter")).define("selectImporter", ["vl"], _selectImporter);
+  main.variable(observer("hoverCell")).define("hoverCell", ["vl"], _hoverCell);
+  main.variable(observer("hoverExporter")).define("hoverExporter", ["vl"], _hoverExporter);
+  main.variable(observer("hoverImporter")).define("hoverImporter", ["vl"], _hoverImporter);
+  main.variable(observer("viewof exportHeatMap")).define("viewof exportHeatMap", ["selectCell","selectExporter","selectImporter","hoverCell","hoverExporter","hoverImporter","vl","themeColors","get_threshold_expr_and_domain","shortenedExports","shortenedExporters","d3","width","countryCentroids","shorten","topojson","world","yearSelection","Event"], _exportHeatMap);
   main.variable(observer("exportHeatMap")).define("exportHeatMap", ["Generators", "viewof exportHeatMap"], (G, _) => G.input(_));
   main.variable(observer("sideBars")).define("sideBars", ["exportHeatMap","html","shortenedExports","vl","themeColors"], _sideBars);
+  main.variable(observer("dinamizeDateFromTrade2")).define("dinamizeDateFromTrade2", ["convertToKbbl"], _dinamizeDateFromTrade2);
+  main.variable(observer("exports2")).define("exports2", ["FileAttachment","dinamizeDateFromTrade2"], _exports2);
+  main.variable(observer("shortenedExports2")).define("shortenedExports2", ["exports2","shorten"], _shortenedExports2);
+  main.variable(observer("viewof exportHeatMap2")).define("viewof exportHeatMap2", ["selectCell","selectExporter","selectImporter","hoverCell","hoverExporter","hoverImporter","vl","themeColors","get_threshold_expr_and_domain","shortenedExports2","shortenedExporters","d3","width","countryCentroids","shorten","topojson","world","yearSelection","Event"], _exportHeatMap2);
+  main.variable(observer("exportHeatMap2")).define("exportHeatMap2", ["Generators", "viewof exportHeatMap2"], (G, _) => G.input(_));
+  main.variable(observer("sideBars2")).define("sideBars2", ["exportHeatMap2","html","shortenedExports2","vl","themeColors"], _sideBars2);
   main.variable(observer("kbblTotalDemandOutput")).define("kbblTotalDemandOutput", ["FileAttachment","dinamizeDate"], _kbblTotalDemandOutput);
   main.variable(observer("demandVersusOutput")).define("demandVersusOutput", ["vl","kbblTotalDemandOutput"], _demandVersusOutput);
   main.variable(observer("kbblCrudeoilStockchangeData")).define("kbblCrudeoilStockchangeData", ["FileAttachment","dinamizeDate"], _kbblCrudeoilStockchangeData);
   main.variable(observer("kbblCrudeoilClosingStocks")).define("kbblCrudeoilClosingStocks", ["FileAttachment","dinamizeDate"], _kbblCrudeoilClosingStocks);
-  main.variable(observer("stockdiffBarChart")).define("stockdiffBarChart", ["vl","kbblCrudeoilStockchangeData","width","kbblCrudeoilClosingStocks"], _stockdiffBarChart);
+  main.variable(observer("viewof selectedCountry")).define("viewof selectedCountry", ["Inputs","kbblCrudeoilStockchangeData"], _selectedCountry);
+  main.variable(observer("selectedCountry")).define("selectedCountry", ["Generators", "viewof selectedCountry"], (G, _) => G.input(_));
+  main.variable(observer("stockdiffBarChart")).define("stockdiffBarChart", ["kbblCrudeoilStockchangeData","selectedCountry","kbblCrudeoilClosingStocks","vl","width"], _stockdiffBarChart);
+  main.variable(observer("copyrightNotice")).define("copyrightNotice", _copyrightNotice);
+  main.variable(observer("poilbreusdm")).define("poilbreusdm", ["__query","FileAttachment","invalidation"], _poilbreusdm);
+  main.variable(observer("lineGraph")).define("lineGraph", ["poilbreusdm","kbblCrudeoilProduction","vl","copyrightNotice"], _lineGraph);
+  main.variable(observer()).define(["kbblCrudeoilProduction"], _58);
   return main;
 }

@@ -1,25 +1,549 @@
-/* Remove margens e paddings padrão que causam overflow */
+/* Variáveis */
+:root {
+  /* cor */
+  --ink: #14213D;          /* texto principal */
+  --ink-soft: #4A5568;     /* texto secundário */
+  --paper: #EEF1F4;        /* fundo da página */
+  --surface: #FFFFFF;      /* fundo dos cartões */
+  --line: #C7CDD6;         /* bordas e divisores */
+  --accent: #B08D57;       /* destaque primário */
+  --accent-ink: #7A5E33;   /* variante escura do destaque, para texto sobre --paper */
+  --accent-tint: rgba(176, 141, 87, 0.2); /* fundo de destaque de texto */
+  --teal: #1F6F6F;         /* destaque secundário */
+  --focus: #2B6CB0;
+
+  /* tipografia */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* espaçamento */
+  --space-1: 0.5rem;
+  --space-2: 0.75rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --space-6: 4rem;
+
+  --radius: 10px;
+  --shadow-card: 0 1px 2px rgba(20, 33, 61, 0.06), 0 8px 24px rgba(20, 33, 61, 0.06);
+
+  /* larguras de conteúdo */
+  --width-reading: 1000px;   /* aba Destaques */
+  --width-explore: 1800px;   /* aba Explorar */
+}
+
 html, body {
-margin: 10px;
-padding: 0;
-width: 100%;
-overflow-x: hidden; /* Evita qualquer rolagem horizontal acidental */
-box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.55;
 }
 
 *, *:before, *:after {
-box-sizing: inherit;
+  box-sizing: inherit;
 }
 
-/* Garante que o container do gráfico ocupe toda a largura disponível */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  margin: 0;
+}
+
+p {
+  margin: 0 0 var(--space-3);
+}
+
+button {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+mark {
+  background: var(--accent-tint);
+  color: var(--ink);
+  padding: 0.05em 0.3em;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.hl-action {
+  color: var(--teal);
+  font-weight: 600;
+}
+
+kbd {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  line-height: 1;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom: 2px solid var(--line);
+  border-radius: 4px;
+  padding: 0.25em 0.5em;
+  color: var(--ink);
+}
+
+/* CABEÇALHO + ABAS */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.site-header__title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--paper);
+  margin: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.tabs__btn {
+  border: none;
+  background: transparent;
+  color: var(--paper);
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tabs__btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tabs__btn.is-active {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+/* PAINÉIS DE ABA */
+.tab-panel {
+  padding: var(--space-5);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tab-panel[hidden] {
+  display: none;
+}
+
+#tab-panel-highlights {
+  max-width: var(--width-reading);
+}
+
+#tab-panel-explore {
+  max-width: var(--width-explore);
+}
+
+@media (max-width: 1900px) {
+  #tab-panel-explore {
+    max-width: 96vw;
+  }
+}
+
+/* ABA DESTAQUES */
+.story {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-block: var(--space-3);
+}
+
+.story__hero {
+  max-width: 46rem;
+}
+
+.story__headline {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1.15;
+  margin-bottom: var(--space-3);
+}
+
+.story__lede {
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  max-width: 42rem;
+}
+
+.story__block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.story__block--reverse .story__text {
+  order: 2;
+}
+
+.story__block--reverse .story__figure {
+  order: 1;
+}
+
+.story__text h3 {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-2);
+}
+
+.story__text p {
+  color: var(--ink-soft);
+}
+
+.story__figure {
+  margin: 0;
+}
+
+.placeholder-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.story__figure figcaption {
+  margin-top: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.story__pullquote {
+  align-self: center;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-5);
+  border-left: 3px solid var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-style: italic;
+  color: var(--ink);
+  background: var(--surface);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.story__cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius);
+}
+
+.story__cta p {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.story__cta-btn {
+  border: none;
+  background: var(--accent);
+  color: var(--ink);
+  padding: 0.7rem 1.3rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.story__cta-btn:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 720px) {
+  .story__block,
+  .story__block--reverse .story__text,
+  .story__block--reverse .story__figure {
+    order: initial;
+  }
+  .story__block {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ABA EXPLORAR */
+.viz-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+  /* contém qualquer excesso de largura de um gráfico dentro do próprio
+     cartão, em vez de deixar a página inteira rolar horizontalmente */
+  overflow-x: hidden;
+}
+
+.viz-card__title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.viz-card__subtitle {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  margin-bottom: var(--space-1);
+}
+
+.viz-card__subtitle:last-child {
+  margin-bottom: 0;
+}
+
+.viz-card__header {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.viz-card__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin-bottom: var(--space-4);
+  align-items: center;
+}
+
+.control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.control__label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+
+.viz-card__body {
+  width: 100%;
+  min-width: 0;
+}
+
+.viz-card__body svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+#observablehq-rank_graph_over_time canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Garante que o gráfico principal ocupe toda a largura disponível */
 #observablehq-rank_graph_over_time {
-    width: 100%;
-    max-width: 100%;
-    display: block; /* Evita espaçamentos extras de elementos inline */
+  width: 100%;
+  max-width: 100%;
+  display: block;
 }
 
-/* Se os controles estiverem na mesma página, limite-os também */
-#controls-forcontrols-for-rank_graph_over_time {
-    width: 100%;
-    padding: 10px; /* Se quiser um respiro nas laterais dos controles */
+/* SELETOR DE VERSÃO DO MAPA */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--paper);
+  width: fit-content;
+}
+
+.segmented__btn {
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.segmented__btn.is-active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.heatmap-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.heatmap-row[hidden] {
+  display: none;
+}
+
+.heatmap-row > div {
+  min-width: 0; /* impede que itens flex forcem overflow do pai */
+}
+
+.heatmap-row > div:first-child {
+  /* exportHeatMap (heatmap + mapa-mundi) */
+  flex: 3 1 700px;
+}
+
+.heatmap-row > div:last-child {
+  /* sideBars */
+  flex: 1 1 260px;
+}
+
+@media (max-width: 900px) {
+  .heatmap-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 720px) {
+  .tab-panel {
+    padding: var(--space-4) var(--space-3);
+  }
+  .site-header {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* AJUSTES DE ESPAÇAMENTO E LAYOUT, pq o layout padrão dos seletores do observable é muito espaçado */
+
+/* Remove o espalhamento exagerado da linha e alinha os blocos à esquerda */
+#controls-for-rank_graph_over_time {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: flex-start;
+}
+
+/* Configura o container interno para agrupar os elementos com um espaçamento harmônico */
+#controls-for-rank_graph_over_time .control {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start; 
+  gap: var(--space-5); /* Espaço razoável (40px) entre os dois seletores */
+  width: auto;
+}
+
+/* Remove a largura fixa do formulário padrão do Observable */
+#controls-for-rank_graph_over_time form.inputs-3a86ea {
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Ajustes finos nos rótulos (labels) */
+#controls-for-rank_graph_over_time form.inputs-3a86ea > label {
+  width: auto !important;             /* Força o rótulo a ocupar apenas o tamanho do seu texto */
+  white-space: nowrap !important;     /* Garante que "Número de países destacados" fique em linha única */
+  margin-right: var(--space-2) !important; /* Reduz o espaçamento entre o texto e o seletor */
+  padding: 0 !important;
+  align-self: center !important;
+}
+
+/* Alinhamento dos seletores e sliders */
+#controls-for-rank_graph_over_time .inputs-3a86ea-input {
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Configura o container interno para agrupar os elementos com um espaçamento harmônico */
+#controls-for-stockdiffBarChart .control {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start; 
+  gap: var(--space-5); /* Espaço razoável (40px) entre os dois seletores */
+  width: auto;
+}
+
+/* Remove a largura fixa do formulário padrão do Observable */
+#controls-for-stockdiffBarChart form.inputs-3a86ea {
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Ajustes finos nos rótulos (labels) */
+#controls-for-stockdiffBarChart form.inputs-3a86ea > label {
+  width: auto !important;             /* Força o rótulo a ocupar apenas o tamanho do seu texto */
+  white-space: nowrap !important;     /* Garante que "Número de países destacados" fique em linha única */
+  margin-right: var(--space-2) !important; /* Reduz o espaçamento entre o texto e o seletor */
+  padding: 0 !important;
+  align-self: center !important;
+}
+
+/* Alinhamento dos seletores e sliders */
+#controls-for-stockdiffBarChart .inputs-3a86ea-input {
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Remove o scroll horizontal no mapa */
+.viz-card__body [role="graphics-document"] {
+  overflow-x: hidden !important;
+}
+
+.vega-bind label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
 }
