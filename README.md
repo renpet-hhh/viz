@@ -17,3 +17,4 @@ Alternativamente,
 
 [Notebook do observable](https://observablehq.com/d/234a5d3ce09cec16)
 
+
