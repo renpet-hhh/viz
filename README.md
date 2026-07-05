@@ -1,33 +1,19 @@
 # Projeto Final
 
-https://observablehq.com/d/234a5d3ce09cec16@1794
+## Equipe:
+- Renan de Castro Silva Cordeiro - 603623
+- Thalles Robson Barbalho - 564322
 
-View this notebook in your browser by running a web server in this folder. For
-example:
+## Instruções
 
-~~~sh
-npx http-server
-~~~
+1. Visite [https://renpet-hhh.github.io/viz/](https://renpet-hhh.github.io/viz/)
 
-Or, use the [Observable Runtime](https://github.com/observablehq/runtime) to
-import this module directly into your application. To npm install:
+Alternativamente,
+1. Clone o repositório.
+2. Sirva os arquivos: `python -m http.server`.
+3. Visite [http://localhost:8000](http://localhost:8000)
 
-~~~sh
-npm install @observablehq/runtime@5
-npm install https://api.observablehq.com/d/234a5d3ce09cec16@1794.tgz?v=3
-~~~
+## Notebook base
 
-Then, import your notebook and the runtime as:
+[Notebook do observable](https://observablehq.com/d/234a5d3ce09cec16)
 
-~~~js
-import {Runtime, Inspector} from "@observablehq/runtime";
-import define from "234a5d3ce09cec16";
-~~~
-
-To log the value of the cell named “foo”:
-
-~~~js
-const runtime = new Runtime();
-const main = runtime.module(define);
-main.value("foo").then(value => console.log(value));
-~~~
