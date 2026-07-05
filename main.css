@@ -196,7 +196,7 @@ kbd {
 .story__lede {
   font-size: 1.1rem;
   color: var(--ink-soft);
-  max-width: 42rem;
+  max-width: 60rem;
 }
 
 .story__block {
@@ -221,6 +221,8 @@ kbd {
 
 .story__text p {
   color: var(--ink-soft);
+  text-align: justify;
+  text-justify: newspaper;
 }
 
 .story__figure {
@@ -247,11 +249,13 @@ kbd {
   margin-top: var(--space-2);
   font-size: 0.85rem;
   color: var(--ink-soft);
+  text-align: justify;
+  text-justify: newspaper;
 }
 
 .story__pullquote {
   align-self: center;
-  max-width: 40rem;
+  max-width: 44rem;
   margin: 0 auto;
   padding: var(--space-4) var(--space-5);
   border-left: 3px solid var(--accent);

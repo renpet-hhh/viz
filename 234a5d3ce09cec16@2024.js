@@ -413,6 +413,7 @@ function _exports(FileAttachment,dinamizeDateFromTrade){return(
 Promise.all(
   [
     FileAttachment("saudi-arabias-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("united-arab-emirates-exports-to-world-by-importer-mirror_2709.csv"),
     // Russia 2002-2021
     FileAttachment("russian-federations-exports-to-world-by-importer_2709.csv"),
     // Russia 2022-2025
@@ -443,7 +444,11 @@ Promise.all(
     FileAttachment("frances-exports-to-world-by-importer_2709.csv"),
     FileAttachment("singapores-exports-to-world-by-importer_2709.csv"),
     FileAttachment("united-kingdoms-exports-to-world-by-importer_2709.csv"),
-    FileAttachment("italys-exports-to-world-by-importer_2709.csv")
+    FileAttachment("italys-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("malaysias-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("indonesias-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("angolas-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("egypts-exports-to-world-by-importer-mirror_2709.csv")
   ]
   .map(file => file.csv().then(dinamizeDateFromTrade))
 ).then(data => data.flatMap(x => x))
@@ -467,6 +472,7 @@ function _exporters(){return(
   "Iraq",
   "Kuwait",
   "Saudi Arabia",
+  "United Arab Emirates",
   "Nigeria",
   // América
   "Canada",
@@ -1099,6 +1105,7 @@ function _exports2(FileAttachment,dinamizeDateFromTrade2){return(
 Promise.all(
   [
     FileAttachment("2-saudi-arabias-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-united-arab-emirates-exports-to-world-by-importer-mirror_2709.csv"),
     // Russia 2002-2021
     FileAttachment("2-russian-federations-exports-to-world-by-importer_2709.csv"),
     // Russia 2022-2025
@@ -1129,7 +1136,11 @@ Promise.all(
     FileAttachment("2-frances-exports-to-world-by-importer_2709.csv"),
     FileAttachment("2-singapores-exports-to-world-by-importer_2709.csv"),
     FileAttachment("2-united-kingdoms-exports-to-world-by-importer_2709.csv"),
-    FileAttachment("2-italys-exports-to-world-by-importer_2709.csv")
+    FileAttachment("2-italys-exports-to-world-by-importer_2709.csv"),
+    FileAttachment("2-malaysias-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-indonesias-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-angolas-exports-to-world-by-importer-mirror_2709.csv"),
+    FileAttachment("2-egypts-exports-to-world-by-importer-mirror_2709.csv")
   ]
   .map(file => file.csv().then(dinamizeDateFromTrade2))
 ).then(data => data.flatMap(x => x))
@@ -1714,25 +1725,40 @@ Inputs.select(
 
 function _stockdiffBarChart(kbblCrudeoilStockchangeData,selectedCountry,kbblCrudeoilClosingStocks,vl,width)
 {
+  // 1. Criação de chaves robustas (Ano-Mês) para evitar problemas de fuso horário no cruzamento
+  const getYearMonthKey = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    // Usa UTC para evitar variações de fuso horário local do navegador
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+  };
+
   const filteredStockchange = kbblCrudeoilStockchangeData.filter(d => d.country === selectedCountry);
   const filteredClosing = kbblCrudeoilClosingStocks.filter(d => d.country === selectedCountry);
 
+  // 2. Indexação rápida O(N) para o fechamento de estoque
+  const closingMap = new Map(
+    filteredClosing.map(c => [getYearMonthKey(c.date), c.value])
+  );
+
+  // 3. Cruzamento dos dados
   const mergedData = filteredStockchange.map(change => {
-    const changeTime = change.date.getTime();
-    const closingRecord = filteredClosing.find(c => c.date.getTime() === changeTime);
+    const key = getYearMonthKey(change.date);
     return {
       country: change.country,
       date: change.date,
       stock_change: change.value,
-      closing_stock: closingRecord ? closingRecord.value : null
+      closing_stock: closingMap.has(key) ? closingMap.get(key) : null
     };
   });
 
+  // 4. Escala de cores unificada
   const colorScale = {
     domain: ['Aumento (Barras)', 'Redução (Barras)', 'Estoque Total (Linha)'],
     range: ['#26A69A', '#EF5350', '#222']
   };
   
+  // Marcação das Barras (Variação)
   const bars = vl.markBar()
     .data(mergedData)
     .transform(
@@ -1747,6 +1773,7 @@ function _stockdiffBarChart(kbblCrudeoilStockchangeData,selectedCountry,kbblCrud
         .title('Legenda')
     );
 
+  // Marcação da Linha (Estoque Total)
   const line = vl.markLine()
     .data(mergedData)
     .transform(
@@ -1760,18 +1787,19 @@ function _stockdiffBarChart(kbblCrudeoilStockchangeData,selectedCountry,kbblCrud
         .scale(colorScale)
     );
 
-  // não uso nearest (nativo do vegalite), pq ele segue a marca mais próxima, em vez da data mais próxima...
+  // Seleção baseada em hover nas coordenadas de data (usando yearmonth para alinhar)
   const hoverSelection = vl.selectPoint('hoverSelection')
     .on('mousemove')
     .fields('date')
+    .nearest(false) // Desativado para usar a área das faixas interativas
     .clear('mouseout');
 
-  // Camada de faixas verticais invisíveis que cobrem 100% da altura do gráfico
+  // Camada invisível para captura de interações (Tooltips de forma estável)
   const interactiveRects = vl.markRect({
-      opacity: 0.001 // 'invisível', mas captura o mouse
+      opacity: 0.001 // Invisível ao usuário, mas detectável pelo mouse
     })
     .data(mergedData)
-    .params(hoverSelection) // captura o mouse
+    .params(hoverSelection)
     .encode(
       vl.x().fieldT('date').timeUnit('yearmonth'),
       vl.tooltip([
@@ -1781,7 +1809,7 @@ function _stockdiffBarChart(kbblCrudeoilStockchangeData,selectedCountry,kbblCrud
       ])
     );
 
-  // Linha guia vertical discreta que acompanha a seleção ativa
+  // Linha guia vertical (Régua de auxílio visual)
   const interactiveRule = vl.markRule({
       color: '#bbb',
       strokeWidth: 1.5,
@@ -1796,7 +1824,7 @@ function _stockdiffBarChart(kbblCrudeoilStockchangeData,selectedCountry,kbblCrud
       vl.opacity().value(0.8)
     );
     
-  // Monta o gráfico com as faixas retangulares por cima para capturar todo o movimento
+  // Montagem final do gráfico em camadas
   const chart = vl.layer(bars, line, interactiveRule, interactiveRects)
     .width(0.6 * width)
     .title(`Evolução do estoque de petróleo bruto — ${selectedCountry}`);
@@ -2014,7 +2042,17 @@ export default function define(runtime, observer) {
     ["2-japans-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/48f2edfa107cc114d4b9f67ad1f643bd6dadede4564d630382429fb6fdf45d3444da04e0078509416f1b5f8d2d2ee3dfb22fce3f01d32b3b064f6f8e7cfaaeb5.csv", import.meta.url), mimeType: "text/csv", toString}],
     ["2-singapores-exports-to-world-by-importer_2709.csv", {url: new URL("./files/1e4003acb79470d9a900375da55d6cf6e34add88b1c4cbedc7c1c33ac7b548fdf50933f4f68524f3fdd716d59d2bdaf047b0eea6d7bd7df49e16dfa144f7ffd1.csv", import.meta.url), mimeType: "text/csv", toString}],
     ["2-kazakhstans-exports-to-world-by-importer_2709.csv", {url: new URL("./files/dc0e4db66a6ecf981d90d189872877ea4f31d4b4d735f2e804eb616dcfef285370adf44b3b3ff8752a06f2c18e4caa8a1ef36555a3cad73f22e09d923465cda0.csv", import.meta.url), mimeType: "text/csv", toString}],
-    ["POILBREUSDM.csv", {url: new URL("./files/4daf1f02b51a339a9b6c2a8f707a570d9ae86c669e01a8b8e03005243ca87f0b0782cadd518348ca092d008d6d19b5e5f625902005a790309f5db6cf777dec1a.csv", import.meta.url), mimeType: "text/csv", toString}]
+    ["POILBREUSDM.csv", {url: new URL("./files/4daf1f02b51a339a9b6c2a8f707a570d9ae86c669e01a8b8e03005243ca87f0b0782cadd518348ca092d008d6d19b5e5f625902005a790309f5db6cf777dec1a.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-united-arab-emirates-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/4d471c1aadb1b1248676b37e611c51ca329fe3b472b545aaeb744c45350d24306b6229a295ed6d305a1a581ee8b2dc3f275cab8ae243911c59f5c648b886477a.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["united-arab-emirates-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/e6de3727d33c19f97d484f2881b2b4cd8a56d2c147e029acb94fdee721029de734ae3f9689c14780a0ce3bb52dc4d0651770b0141abec1b7b671f02e2cb7c486.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-malaysias-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/bfe856fc0da624d9723e8f4d4238fe3107834d698c4d99f704d2293ff94c432ff122c48139f53412141f8942989256b63a4a661316b8d8f5272d3c607ccf5661.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["malaysias-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/c04952401e15c89df6e24bbbe38592cfdf14f747937794e8d6ae83d848174b4228a961559fcf8b1a55cbd3ae6a17b63ffac5210e8a583250f5e9faedeb6973a5.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["indonesias-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/1addc01b7203a3b59318d0f60c25727a52ed56196b7fc99fb1b67d23e46f7b1c8ab504918c4ddc187496a7736ccb9292296b6e44a75e4aa40a61c64fc5806bdc.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-indonesias-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/89f2c5490d4012c437d7f168d726e751ccfa24b8d005a3110e3fa7068842cf63d9a4c59a5ef3acd87b3b3f3a61999743bc343f01268cb6a2ea787b7a4c660c4a.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-egypts-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/af390fbf9c2f9befd0b056e69e840708c105ab13fb30237925457156d6a360a3e1cf3bd96808e0af6f7abf66c3680fa66ce18c62905e6087c19a5bd0f410666f.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["egypts-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/c71eb2555cb32856c84bada4d97c6764532e3c875e82e8b3db97cdbda2f9c1387468a2b30ef5c25dba5aa67afb1f9034bb808c9d538dbdaa3b67a57eead575f2.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["angolas-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/3505428dfab3d2cfdb948e7241fd69dbacb99cb2e4438ffec364cd7fd5fc7acb82f21f23cad810957858da032effc0696c3ad7978f1ef5235c2795109aa41727.csv", import.meta.url), mimeType: "text/csv", toString}],
+    ["2-angolas-exports-to-world-by-importer-mirror_2709.csv", {url: new URL("./files/fd2d46d13b53a053a3139bee1760e23a19bd1f76e2ee0a73dd77c66561934a972aeab7cd40d2dacaa8b85bc8c0b11447179e5d0630aa803f565ecd9345f6b450.csv", import.meta.url), mimeType: "text/csv", toString}]
   ]);
   main.builtin("FileAttachment", runtime.fileAttachments(name => fileAttachments.get(name)));
   main.variable(observer()).define(["md"], _1);

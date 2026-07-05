@@ -1,10 +1,5 @@
-// ui.js — navegação por abas e alternância de versão do mapa de calor.
-// Não depende do runtime do Observable, então pode rodar antes dele.
-
 (function () {
   "use strict";
-
-  /* ---------- Abas ---------- */
 
   const tabButtons = Array.from(document.querySelectorAll(".tabs__btn"));
   const panels = {
@@ -45,10 +40,14 @@
 
   const goToExploreBtn = document.getElementById("go-to-explore");
   if (goToExploreBtn) {
-    goToExploreBtn.addEventListener("click", () => activateTab("explore"));
+    goToExploreBtn.addEventListener("click", () => {
+      activateTab("explore");
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    });
   }
-
-  /* ---------- Alternância de versão do mapa de calor ---------- */
 
   const heatmapButtons = Array.from(document.querySelectorAll("[data-heatmap-version]"));
   const heatmapPanels = Array.from(document.querySelectorAll("[data-heatmap-panel]"));
